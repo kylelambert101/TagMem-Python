@@ -1,4 +1,4 @@
-#TagMem Version 3
+#TagMem Version 4
 from Memory import Memory
 from ENTRY import ENTRY
 import pickle, webbrowser
@@ -112,6 +112,14 @@ def expressAdd(toAdd, prefix='', extraTags=''):
     print("New Entry Added")
     saveMemory()
 
+def openTabs(anID):
+    if not memory.isValidID(anID):
+        return
+    someURLs = memory.getByID(anID).getValue()
+    urlList = someURLs.split(' ')
+    for each in urlList:
+        webbrowser.open(each)
+
 def dispatch(userInput):
     rawInput = userInput
     userInput = userInput.lower()
@@ -154,6 +162,8 @@ def dispatch(userInput):
         expressAdd(rawInput[7:],'Lookup: ','lookup look up todo to do')
     elif userInput == 'lookuplist':
         valueList('lookup')
+    elif userInput.startswith('opentabs '):
+        openTabs(userInput[9:])
     else:
         print("I didn't recognize that command")
     
