@@ -44,7 +44,7 @@ def updateEntry(entryID):
 def loadMemory():
     global memory
     try:
-        filename = "myMemory.dat"
+        filename = "../Resources/myMemory.dat"
         file = open(filename, "rb")
         memory = pickle.load(file)
         print("Memory file successfully loaded.")
@@ -55,7 +55,7 @@ def loadMemory():
         
 def saveMemory():
     global memory
-    filename = "myMemory.dat"
+    filename = "../Resources/myMemory.dat"
     file = open(filename, "wb")
     if file == None:
         print("There was an error creating the file")
