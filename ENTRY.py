@@ -49,7 +49,10 @@ class ENTRY:
         self.tagList.append(newTag)
                 
     def removeTag(self, toRemove):
-        self.tagList.remove(toRemove)
+        if (toRemove in self.tagList):
+            self.tagList.remove(toRemove)
+        else:
+            print("There is no tag '{}' in {}".format(toRemove, self.nickName))
 
     def printValue(self):
         print("({}) {}".format(self.idNum, self.value))

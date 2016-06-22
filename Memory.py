@@ -1,3 +1,4 @@
+from ENTRY import ENTRY
 class Memory:
     
     def __init__(self):
@@ -8,12 +9,20 @@ class Memory:
 
     def isValidID(self, ID):
         for entry in self.storage:
+            try:
+                int(ID)
+            except:
+                print("That was not a valid ID")
+                return
             if int(entry.getID()) == int(ID):
                 return True
         return False
 
     def add(self, anEntry):
         self.storage.append(anEntry)
+
+    def remove(self, entry):
+        self.storage.remove(entry)
 
     def assignNewID(self):
         toAssign = self.nextEntryID
@@ -80,17 +89,11 @@ class Memory:
                 return entry
         #Should print error if no entry is found with that ID
         print("Couldn't find that entry")
-    
-    def addTag(self, ID, newTag):
-        entry = self.getByID(ID)
-        entry.addTag(newTag)
 
-    def removeTag(self, ID, toRemove):
-        entry = self.getByID(ID)
-        if not(toRemove in entry.getTagList()):
-            print("There is no tag '{}' in {}".format(toRemove, entry.nickName))
-        else:
-            entry.removeTag(toRemove)
+    def createEntry(self, name, value, tagList):
+        newID = self.assignNewID()
+        return ENTRY(newID, name, value, tagList)
 
-    def remove(self, entry):
-        self.storage.remove(entry)
+    def addNewEntry(self, name, value, tagList):
+        toAdd = self.createEntry(name, value, tagList)
+        self.add(toAdd)
