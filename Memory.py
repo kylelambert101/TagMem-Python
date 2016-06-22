@@ -97,3 +97,11 @@ class Memory:
     def addNewEntry(self, name, value, tagList):
         toAdd = self.createEntry(name, value, tagList)
         self.add(toAdd)
+
+    def associateTags(self, existing, new):
+        #for each entry, if it has existing but not new, add new
+        for entry in self.storage:
+            if entry.hasTag(existing) and not entry.hasTag(new):
+                entry.addTag(new)
+                print("Updated Entry {}".format(entry.getID()))
+

@@ -1,9 +1,10 @@
-#TagMem Version 4
+#TagMem Version 5
 from Memory import Memory
 from ENTRY import ENTRY
 import pickle, webbrowser
 
 memory = []
+associatedList = [('job', 'career'), ('career', 'job'), ('url', 'webpage')]
 
 def createEntryDialogue():
     global memory
@@ -120,6 +121,17 @@ def openTabs(anID):
     for each in urlList:
         webbrowser.open(each)
 
+def associateTags(inputString):
+    toAssociate = inputString.split(' ')
+    if not (len(toAssociate) == 2):
+        print("That was not formatted correctly")
+    memory.associateTags(toAssociate[0],toAssociate[1])
+
+def updateAssociations():
+    for pair in associatedList:
+        memory.associateTags(pair[0],pair[1])
+    
+
 def dispatch(userInput):
     rawInput = userInput
     userInput = userInput.lower()
@@ -164,6 +176,8 @@ def dispatch(userInput):
         valueList('lookup')
     elif userInput.startswith('opentabs '):
         openTabs(userInput[9:])
+    elif userInput.startswith('associate tags '):
+        associateTags(userInput[15:])
     else:
         print("I didn't recognize that command")
     
@@ -178,9 +192,11 @@ def main():
         if userChoice.lower() == 'exit':
             shouldSave = input("Do you want to save before exiting?")
             if (shouldSave.lower().startswith('y')):
+                updateAssociations()
                 saveMemory()
             else:
                 print("Alright, whatevs.")
+                updateAssociations()
             print("TTYL!")
             return
         dispatch(userChoice)

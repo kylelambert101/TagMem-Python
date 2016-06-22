@@ -56,3 +56,6 @@ class ENTRY:
 
     def printValue(self):
         print("({}) {}".format(self.idNum, self.value))
+
+    def hasTag(self, tag):
+        return tag in self.tagList
