@@ -1,5 +1,3 @@
-#prospective Memory API in MemoryNotes.txt
-
 class Memory:
     
     def __init__(self):
@@ -7,7 +5,12 @@ class Memory:
         self.storage = []
         #IDnum to assign to next Entry
         self.nextEntryID = 0
-        
+
+    def isValidID(self, ID):
+        for entry in self.storage:
+            if int(entry.getID()) == int(ID):
+                return True
+        return False
 
     def add(self, anEntry):
         self.storage.append(anEntry)
@@ -18,7 +21,6 @@ class Memory:
         return toAssign
         
     def printSimple(self):
-        #get list of nicknames, alphabetize, and display
         nicknames = []
         for entry in self.storage:
             print('{}: {}'.format(entry.getID(), entry.getNickName()))
@@ -34,6 +36,7 @@ class Memory:
         print("Hits:")
         for hit in hitList:
             hit.printDetail()
+            print()
 
     def searchMatchOne(self, queries):
         hitList = []
@@ -58,6 +61,19 @@ class Memory:
                 hitList.append(entry)
         Memory.printHits(hitList)
 
+    def searchListValues(self, queries):
+        hitList = []
+        for entry in self.storage:
+            added = False
+            match = [False]*len(queries)
+            for counter in range(len(queries)):
+                if (queries[counter].lower() in entry.getTagList()):
+                    match[counter] = True
+            if not (False in match):
+                hitList.append(entry)
+        for each in hitList:
+            each.printValue()
+
     def getByID(self, ID):
         for entry in self.storage:
             if entry.getID() == int(ID):
@@ -75,3 +91,6 @@ class Memory:
             print("There is no tag '{}' in {}".format(toRemove, entry.nickName))
         else:
             entry.removeTag(toRemove)
+
+    def remove(self, entry):
+        self.storage.remove(entry)

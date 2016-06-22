@@ -50,3 +50,6 @@ class ENTRY:
                 
     def removeTag(self, toRemove):
         self.tagList.remove(toRemove)
+
+    def printValue(self):
+        print("({}) {}".format(self.idNum, self.value))
