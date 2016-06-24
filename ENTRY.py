@@ -45,6 +45,9 @@ class ENTRY:
             else:
                 print(self.tagList[index],end=", ")
 
+    def printName(self):
+        print("({}) {}".format(self.idNum, self.nickName))
+
     def addTag(self, newTag):
         self.tagList.append(newTag)
                 

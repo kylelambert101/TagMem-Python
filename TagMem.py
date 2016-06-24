@@ -98,6 +98,10 @@ def valueList(query):
     queryList = query.split(' ')
     memory.searchListValues(queryList)
 
+def nameList(query):
+    queryList = query.split(' ')
+    memory.searchListNames(queryList)
+
 def openURL(searchID):
     if not memory.isValidID(searchID):
         return
@@ -135,8 +139,10 @@ def updateAssociations():
 def dispatch(userInput):
     rawInput = userInput
     userInput = userInput.lower()
-    if userInput.startswith('detailsearch '):
-        memory.searchMatchAll(userInput[13:].split(' '))
+    if userInput.startswith('search '):
+        nameList(userInput[7:])
+    elif userInput.startswith('detail '):
+        memory.searchMatchAll(userInput[7:].split(' '))
     elif userInput.startswith('searchany '):
         memory.searchMatchOne(userInput[10:].split(' '))
     elif userInput.startswith('view '):
@@ -158,8 +164,8 @@ def dispatch(userInput):
         expressAdd(rawInput[4:])
     elif userInput.startswith('remove '):
         removeProtocol(userInput[7:])
-    elif userInput.startswith('search '):
-        valueList(userInput[7:])
+    elif userInput.startswith('valuelist '):
+        valueList(userInput[10:])
     elif userInput.startswith('todo '):
         expressAdd(rawInput[5:], "Todo: ","todo to do")
     elif userInput == 'todolist':

@@ -83,6 +83,19 @@ class Memory:
         for each in hitList:
             each.printValue()
 
+    def searchListNames(self, queries):
+        hitList = []
+        for entry in self.storage:
+            added = False
+            match = [False]*len(queries)
+            for counter in range(len(queries)):
+                if (queries[counter].lower() in entry.getTagList()):
+                    match[counter] = True
+            if not (False in match):
+                hitList.append(entry)
+        for each in hitList:
+            each.printName()
+
     def getByID(self, ID):
         for entry in self.storage:
             if entry.getID() == int(ID):
