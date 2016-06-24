@@ -1,9 +1,9 @@
-#TagMem Version 5
+#TagMem Version 6
 from Memory import Memory
 from ENTRY import ENTRY
 import pickle, webbrowser
 
-memory = []
+memory = {}
 associatedList = [('job', 'career'), ('career', 'job'), ('url', 'webpage')]
 
 def createEntryDialogue():
@@ -44,7 +44,7 @@ def updateEntry(entryID):
 def loadMemory():
     global memory
     try:
-        filename = "../Resources/myMemory.dat"
+        filename = "../Resources/DictMemory.dat"
         file = open(filename, "rb")
         memory = pickle.load(file)
         print("Memory file successfully loaded.")
@@ -55,7 +55,7 @@ def loadMemory():
         
 def saveMemory():
     global memory
-    filename = "../Resources/myMemory.dat"
+    filename = "../Resources/DictMemory.dat"
     file = open(filename, "wb")
     if file == None:
         print("There was an error creating the file")
@@ -83,12 +83,11 @@ def printHelp():
 def removeProtocol(entryID):
     if not(memory.isValidID(entryID)):
         return
-    entry = memory.getByID(entryID)
     print("Are you sure you want to remove the following entry?")
     entry.printDetail()
     sure = input("-->")
     if (sure.lower().startswith('y')):
-        memory.remove(entry)
+        memory.remove(entryID)
         print("Entry removed")
         saveMemory()
     else:
