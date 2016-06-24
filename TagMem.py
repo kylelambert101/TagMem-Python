@@ -1,4 +1,4 @@
-#TagMem Version 5
+#TagMem Version 5.1
 from Memory import Memory
 from ENTRY import ENTRY
 import pickle, webbrowser
@@ -8,11 +8,11 @@ associatedList = [('job', 'career'), ('career', 'job'), ('url', 'webpage')]
 
 def createEntryDialogue():
     global memory
-    nickName = input("Nickname: ")
+    name = input("Name: ")
     value = input("Value: ")
     tagString = input("Enter tags in the following format: tag1 tag2 tag3...\n-->")
     tagList = tagString.lower().split(' ')
-    memory.addNewEntry(nickName, value, tagList)
+    memory.addNewEntry(name, value, tagList)
     saveMemory()
 
 def updateEntry(entryID):
@@ -26,7 +26,7 @@ def updateEntry(entryID):
         toUpdate.printDetail()
         editChoice = input('\n-->')
         if editChoice.lower().startswith('new name '):
-            toUpdate.setNickName(editChoice[9:])
+            toUpdate.setname(editChoice[9:])
         elif editChoice.lower().startswith('new value '):
             toUpdate.setValue(editChoice[10:])
         elif editChoice.lower().startswith('add tag '):
@@ -72,7 +72,7 @@ def printHelp():
     print("lookup TASK -- creates a new lookup entry which can be found under todolist and lookuplist")
     print("lookuplist -- lists all lookup entries")
     print("print detail -- prints detail view of full memory")
-    print("quickprint -- prints ID and Nickname of all entries in memory")
+    print("quickprint -- prints ID and name of all entries in memory")
     print("remove ENTRYID -- removes the entry with the given ID")
     print("save -- saves the current memory to myMemory.dat")
     print("search QUERY -- searches memory for given query (not case sensitive) and displays detail print of results")
@@ -109,11 +109,11 @@ def openURL(searchID):
     webbrowser.open(url)
 
 def expressAdd(toAdd, prefix='', extraTags=''):
-    nickName = prefix+toAdd
+    name = prefix+toAdd
     value = toAdd
     tagString = toAdd+' '+extraTags
     tagList = tagString.lower().split(' ')
-    memory.addNewEntry(nickName, value, tagList)
+    memory.addNewEntry(name, value, tagList)
     print("New Entry Added")
     saveMemory()
 

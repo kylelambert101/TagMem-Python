@@ -1,8 +1,8 @@
 class ENTRY:
     
-    def __init__(self, idNum, nickName, value, tagList):
+    def __init__(self, idNum, name, value, tagList):
         self.idNum = idNum
-        self.nickName = nickName
+        self.name = name
         self.value = value
         self.tagList = tagList
 
@@ -24,17 +24,17 @@ class ENTRY:
     def getID(self):
         return self.idNum
 
-    def getNickName(self):
-        return self.nickName
+    def getname(self):
+        return self.name
 
-    def setNickName(self, newName):
-        self.nickName = newName
+    def setname(self, newName):
+        self.name = newName
 
     def __str__(self):
-        return self.nickName
+        return self.name
 
     def printDetail(self):
-        print('Entry "{}"'.format(self.nickName))
+        print('Entry "{}"'.format(self.name))
         print('\tID: {}'.format(self.idNum))
         print('\tvalue: {}'.format(self.value))
         print('\ttags: {',end="")
@@ -46,7 +46,7 @@ class ENTRY:
                 print(self.tagList[index],end=", ")
 
     def printName(self):
-        print("({}) {}".format(self.idNum, self.nickName))
+        print("({}) {}".format(self.idNum, self.name))
 
     def addTag(self, newTag):
         self.tagList.append(newTag)
@@ -55,7 +55,7 @@ class ENTRY:
         if (toRemove in self.tagList):
             self.tagList.remove(toRemove)
         else:
-            print("There is no tag '{}' in {}".format(toRemove, self.nickName))
+            print("There is no tag '{}' in {}".format(toRemove, self.name))
 
     def printValue(self):
         print("({}) {}".format(self.idNum, self.value))

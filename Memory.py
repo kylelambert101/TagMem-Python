@@ -30,9 +30,9 @@ class Memory:
         return toAssign
         
     def printSimple(self):
-        nicknames = []
+        names = []
         for entry in self.storage:
-            print('{}: {}'.format(entry.getID(), entry.getNickName()))
+            print('{}: {}'.format(entry.getID(), entry.getname()))
             
     def printDetail(self):
         for entry in self.storage:
