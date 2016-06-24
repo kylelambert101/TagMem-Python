@@ -167,11 +167,11 @@ def dispatch(userInput):
     elif userInput.startswith('valuelist '):
         valueList(userInput[10:])
     elif userInput.startswith('todo '):
-        expressAdd(rawInput[5:], "Todo: ","todo to do")
+        expressAdd(rawInput[5:], "","todo to do")
     elif userInput == 'todolist':
-        valueList('todo')
+        nameList('todo')
     elif userInput.startswith('wish '):
-        expressAdd(rawInput[5:],"WishList: ",'wishlist wish list')
+        expressAdd(rawInput[5:],"",'wishlist wish list')
     elif userInput == 'wishlist':
         valueList('wish')
     elif userInput.startswith("url "):
