@@ -26,7 +26,7 @@ def updateEntry(entryID):
         toUpdate.printDetail()
         editChoice = input('\n-->')
         if editChoice.lower().startswith('new name '):
-            toUpdate.setname(editChoice[9:])
+            toUpdate.setName(editChoice[9:])
         elif editChoice.lower().startswith('new value '):
             toUpdate.setValue(editChoice[10:])
         elif editChoice.lower().startswith('add tag '):
@@ -65,18 +65,22 @@ def saveMemory():
     print("Saved Memory to",filename)
 
 def printHelp():
+    print()
     print("The following are the available commands for the TagMem program:")
     print("add -- starts the add dialogue for adding a new entry to memory")
-    print("update ID -- opens edit dialogue for the specified entry")
+    print("associatetags TAG1 TAG2 -- adds TAG2 to any entry with TAG1")
     print("help -- prints this super helpful list")
     print("lookup TASK -- creates a new lookup entry which can be found under todolist and lookuplist")
     print("lookuplist -- lists all lookup entries")
+    print("opentabs ID -- opens all URLs from specified entry value in default web browser")
     print("print detail -- prints detail view of full memory")
     print("quickprint -- prints ID and name of all entries in memory")
     print("remove ENTRYID -- removes the entry with the given ID")
     print("save -- saves the current memory to myMemory.dat")
     print("search QUERY -- searches memory for given query (not case sensitive) and displays detail print of results")
     print("todo TASK -- creates a new todo entry with the value TASK")
+    print("update ID -- opens edit dialogue for the specified entry")
+    print("url ID -- opens the URL value of the specified entry in default web browser")
     print("valuelist QUERY -- prints only values of search results for given query")
     print("view ID -- displays detail print of entry with given ID")
 
@@ -135,7 +139,6 @@ def updateAssociations():
     for pair in associatedList:
         memory.associateTags(pair[0],pair[1])
     
-
 def dispatch(userInput):
     rawInput = userInput
     userInput = userInput.lower()
