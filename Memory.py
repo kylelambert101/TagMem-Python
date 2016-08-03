@@ -46,7 +46,7 @@ class Memory:
             hit.printDetail()
             print()
 
-    def searchMatchOne(self, queries):
+    def searchMatchAny(self, queries):
         hitList = []
         for entry in self.storage:
             added = False

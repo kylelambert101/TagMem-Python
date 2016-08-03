@@ -156,7 +156,7 @@ def getHits(queryList, allorany):
     if allorany == 'all':
         hitList = memory.searchMatchAll(queryList)
     else:
-        hitList = memory.searchmatchAny(queryList)
+        hitList = memory.searchMatchAny(queryList)
     return hitList
 
 def valueList(hitList):
@@ -169,7 +169,7 @@ def nameList(hitList):
 
 def revealPrint(hitList):
     for each in hitList:
-        print('{}: {}'.format(each.getID(),each.getName()))
+        print('\n{}: {}'.format(each.getID(),each.getName()))
         print('\t{}'.format(each.getValue()))
 
 def detailPrint(hitList):
@@ -182,12 +182,14 @@ def searchDispatch(inputList):
     for token in inputList:
         if token.startswith('-'):
             argList.append(token)#add to argList
-            inputList.remove(token)#remove from inputList
+            
+    #magic voodoo that returns queries sans-arguments
+    queries = [each for each in inputList if not each.startswith('-')]
+    
     if '-any' in argList:
         inclusionParam = 'any'
-        
-    #inputList now has queries only
-    hits = getHits(inputList, inclusionParam)
+
+    hits = getHits(queries, inclusionParam)
 
     if '-value' in argList:
         valueList(hits)
