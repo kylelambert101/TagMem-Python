@@ -30,9 +30,8 @@ class Memory:
         return toAssign
         
     def printSimple(self):
-        names = []
         for entry in self.storage:
-            print('{}: {}'.format(entry.getID(), entry.getname()))
+            print('{}: {}'.format(entry.getID(), entry.getName()))
             
     def printDetail(self):
         for entry in self.storage:
@@ -55,7 +54,7 @@ class Memory:
                 if ((query.lower() in entry.getTagList()) and (not added)):
                     hitList.append(entry)
                     added = True
-        Memory.printHits(hitList)
+        return hitList
             
 
     def searchMatchAll(self, queries):
@@ -68,33 +67,7 @@ class Memory:
                     match[counter] = True
             if not (False in match):
                 hitList.append(entry)
-        Memory.printHits(hitList)
-
-    def searchListValues(self, queries):
-        hitList = []
-        for entry in self.storage:
-            added = False
-            match = [False]*len(queries)
-            for counter in range(len(queries)):
-                if (queries[counter].lower() in entry.getTagList()):
-                    match[counter] = True
-            if not (False in match):
-                hitList.append(entry)
-        for each in hitList:
-            each.printValue()
-
-    def searchListNames(self, queries):
-        hitList = []
-        for entry in self.storage:
-            added = False
-            match = [False]*len(queries)
-            for counter in range(len(queries)):
-                if (queries[counter].lower() in entry.getTagList()):
-                    match[counter] = True
-            if not (False in match):
-                hitList.append(entry)
-        for each in hitList:
-            each.printName()
+        return hitList
 
     def getByID(self, ID):
         for entry in self.storage:
@@ -110,6 +83,7 @@ class Memory:
     def addNewEntry(self, name, value, tagList):
         toAdd = self.createEntry(name, value, tagList)
         self.add(toAdd)
+        return toAdd.getID()
 
     def associateTags(self, existing, new):
         #for each entry, if it has existing but not new, add new

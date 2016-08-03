@@ -1,10 +1,10 @@
-#TagMem Version 5.1
+#TagMem Version 6
 from Memory import Memory
 from ENTRY import ENTRY
 import pickle, webbrowser
 
 memory = []
-associatedList = [('job', 'career'), ('career', 'job'), ('url', 'webpage')]
+associatedList = [('job', 'career'), ('career', 'job'), ('url', 'webpage'), ('raspberry','linda'),('pi','linda'),('linda','raspberry'),('linda','pi')]
 
 def createEntryDialogue():
     global memory
@@ -12,34 +12,9 @@ def createEntryDialogue():
     value = input("Value: ")
     tagString = input("Enter tags in the following format: tag1 tag2 tag3...\n-->")
     tagList = tagString.lower().split(' ')
-    memory.addNewEntry(name, value, tagList)
+    freshID = memory.addNewEntry(name, value, tagList)
+    print("New Entry added! (ID {})".format(freshID))
     saveMemory()
-
-def updateEntry(entryID):
-    if not (memory.isValidID(entryID)):
-        print("Not a valid ID")
-        return
-    while True:
-        print("What about the following entry would you like to change?")
-        print("Type 'done' when done.")
-        toUpdate = memory.getByID(entryID)
-        toUpdate.printDetail()
-        editChoice = input('\n-->')
-        if editChoice.lower().startswith('new name '):
-            toUpdate.setName(editChoice[9:])
-        elif editChoice.lower().startswith('new value '):
-            toUpdate.setValue(editChoice[10:])
-        elif editChoice.lower().startswith('add tag '):
-            toUpdate.addTag(editChoice[8:])
-        elif editChoice.lower().startswith('remove tag '):
-            toUpdate.removeTag(editChoice[11:])
-        elif editChoice.lower() == 'done':
-            print("Returning to main menu")
-            return
-        else:
-            print("That didn't make sense to me.")
-        saveMemory()
-        print("Entry updated")
 
 def loadMemory():
     global memory
@@ -84,7 +59,47 @@ def printHelp():
     print("valuelist QUERY -- prints only values of search results for given query")
     print("view ID -- displays detail print of entry with given ID")
 
-def removeProtocol(entryID):
+#updated to use inputList----------------------------------------------
+
+def openURL(inputList):
+    if len(inputList) != 1:
+        print("That wasn't formatted correctly")
+        return
+    searchID = inputList[0]
+    if not memory.isValidID(searchID):
+        print("Not a valid ID")
+        return
+    url = memory.getByID(searchID).getValue()
+    webbrowser.open(url)
+
+def openTabs(inputList):
+    if len(inputList) != 1:
+        print("That wasn't formatted correctly")
+        return
+    anID = inputList[0]    
+    if not memory.isValidID(anID):
+        print("Not a valid ID")
+        return
+    someURLs = memory.getByID(anID).getValue()
+    urlList = someURLs.split(' ')
+    for each in urlList:
+        webbrowser.open(each)
+
+def associateTags(inputList):
+    toAssociate = inputList
+    if not (len(toAssociate) == 2):
+        print("That was not formatted correctly")
+    memory.associateTags(toAssociate[0],toAssociate[1])
+
+def updateAssociations():
+    for pair in associatedList:
+        memory.associateTags(pair[0],pair[1])
+
+def removeProtocol(inputList):
+    if len(inputList)!=1:
+        print("That wasn't formatted correctly. Try again")
+        return
+    entryID = inputList[0]    
     if not(memory.isValidID(entryID)):
         return
     entry = memory.getByID(entryID)
@@ -98,95 +113,147 @@ def removeProtocol(entryID):
     else:
         return
 
-def valueList(query):
-    queryList = query.split(' ')
-    memory.searchListValues(queryList)
-
-def nameList(query):
-    queryList = query.split(' ')
-    memory.searchListNames(queryList)
-
-def openURL(searchID):
-    if not memory.isValidID(searchID):
-        return
-    url = memory.getByID(searchID).getValue()
-    webbrowser.open(url)
-
 def expressAdd(toAdd, prefix='', extraTags=''):
     name = prefix+toAdd
     value = toAdd
     tagString = toAdd+' '+extraTags
     tagList = tagString.lower().split(' ')
-    memory.addNewEntry(name, value, tagList)
-    print("New Entry Added")
+    freshID = memory.addNewEntry(name, value, tagList)
+    print("New Entry Added (ID {})".format(freshID))
     saveMemory()
 
-def openTabs(anID):
-    if not memory.isValidID(anID):
+def updateEntry(inputList):
+    if len(inputList)!=1:
+        print("That wasn't formatted correctly. Try again")
         return
-    someURLs = memory.getByID(anID).getValue()
-    urlList = someURLs.split(' ')
-    for each in urlList:
-        webbrowser.open(each)
+    entryID = inputList[0]
+    if not (memory.isValidID(entryID)):
+        print("Not a valid ID")
+        return
+    while True:
+        print("\n\nWhat about the following entry would you like to change?")
+        print("Type 'done' when done.")
+        toUpdate = memory.getByID(entryID)
+        toUpdate.printDetail()
+        editChoice = input('\n-->')
+        if editChoice.lower().startswith('new name '):
+            toUpdate.setName(editChoice[9:])
+        elif editChoice.lower().startswith('new value '):
+            toUpdate.setValue(editChoice[10:])
+        elif editChoice.lower().startswith('add tag '):
+            toUpdate.addTag(editChoice[8:])
+        elif editChoice.lower().startswith('remove tag '):
+            toUpdate.removeTag(editChoice[11:])
+        elif editChoice.lower() == 'done':
+            print("Returning to main menu")
+            return
+        else:
+            print("That didn't make sense to me.")
+        saveMemory()
+        print("Entry updated")
 
-def associateTags(inputString):
-    toAssociate = inputString.split(' ')
-    if not (len(toAssociate) == 2):
-        print("That was not formatted correctly")
-    memory.associateTags(toAssociate[0],toAssociate[1])
+def getHits(queryList, allorany):
+    if allorany == 'all':
+        hitList = memory.searchMatchAll(queryList)
+    else:
+        hitList = memory.searchmatchAny(queryList)
+    return hitList
 
-def updateAssociations():
-    for pair in associatedList:
-        memory.associateTags(pair[0],pair[1])
+def valueList(hitList):
+    for each in hitList:
+        print('{}: {}'.format(each.getID(),each.getValue()))
+
+def nameList(hitList):
+    for each in hitList:
+        print('{}: {}'.format(each.getID(),each.getName()))
+
+def revealPrint(hitList):
+    for each in hitList:
+        print('{}: {}'.format(each.getID(),each.getName()))
+        print('\t{}'.format(each.getValue()))
+
+def detailPrint(hitList):
+    for each in hitList:
+        each.printDetail()
+
+def searchDispatch(inputList):
+    inclusionParam = 'all' #default
+    argList = []
+    for token in inputList:
+        if token.startswith('-'):
+            argList.append(token)#add to argList
+            inputList.remove(token)#remove from inputList
+    if '-any' in argList:
+        inclusionParam = 'any'
+        
+    #inputList now has queries only
+    hits = getHits(inputList, inclusionParam)
+
+    if '-value' in argList:
+        valueList(hits)
+    elif '-r' in argList:
+        revealPrint(hits)
+    elif '-detail' in argList:
+        detailPrint(hits)
+    else:#default print name
+        nameList(hits)
+
+def view(inputList):
+    #correctly formatted, inputList should be the id to view
+    if len(inputList) !=1:
+        print("That wasn't formatted correctly.")
+        return
+    toView = inputList[0]
+    if memory.isValidID(toView):
+        memory.getByID(toView).printDetail()
     
 def dispatch(userInput):
     rawInput = userInput
     userInput = userInput.lower()
-    if userInput.startswith('search '):
-        nameList(userInput[7:])
-    elif userInput.startswith('detail '):
-        memory.searchMatchAll(userInput[7:].split(' '))
-    elif userInput.startswith('searchany '):
-        memory.searchMatchOne(userInput[10:].split(' '))
-    elif userInput.startswith('view '):
-        if memory.isValidID(userInput[5:]):
-            memory.getByID(userInput[5:]).printDetail()
-    elif userInput.startswith('update '):
-        updateEntry(userInput[7:])
-    elif userInput == 'help':
+    inputList = userInput.split(' ')
+    if len(inputList) == 0:
+        print("No input detected. Do better next time.")
+        return
+    command = inputList[0]
+    args = inputList[1:]
+    if command == 'search':
+        searchDispatch(args)
+    elif command == 'view':
+        view(args)
+    elif command == 'update':
+        updateEntry(args)
+    elif command == 'help':
         printHelp()
-    elif userInput == 'save':
+    elif command == 'save':
         saveMemory()
-    elif userInput == 'quickprint':
+    elif command == 'quickprint':
         memory.printSimple()
-    elif userInput == 'print detail':
+    elif command == 'print' and args == ['detail']:
         memory.printDetail()
-    elif userInput  == 'add':
+    elif command == 'add' and len(args) == 0:#if the input is just 'add'
         createEntryDialogue()
-    elif userInput.startswith('add '):
-        expressAdd(rawInput[4:])
-    elif userInput.startswith('remove '):
-        removeProtocol(userInput[7:])
-    elif userInput.startswith('valuelist '):
-        valueList(userInput[10:])
-    elif userInput.startswith('todo '):
+    elif command == 'add':#if there's more after add
+        expressAdd(' '.join(args))#make it a string again
+    elif command == 'remove':
+        removeProtocol(args)
+    elif command == 'todo' and len(args)>0:#make sure there's more after todo
         expressAdd(rawInput[5:], "","todo to do")
-    elif userInput == 'todolist':
-        nameList('todo')
-    elif userInput.startswith('wish '):
+    elif command == 'todolist':
+        nameList(getHits(['todo'],'all'))
+    elif command == 'wish' and len(args)>0:
         expressAdd(rawInput[5:],"",'wishlist wish list')
-    elif userInput == 'wishlist':
-        valueList('wish')
-    elif userInput.startswith("url "):
-        openURL(rawInput[4:])
-    elif userInput.startswith('lookup '):
+    elif command == 'wishlist':
+        valueList(getHits(['wish'],'all'))
+    elif command == "url":
+        openURL(args)
+    elif command == 'lookup' and len(args)>0:
         expressAdd(rawInput[7:],'Lookup: ','lookup look up todo to do')
-    elif userInput == 'lookuplist':
-        valueList('lookup')
-    elif userInput.startswith('opentabs '):
-        openTabs(userInput[9:])
-    elif userInput.startswith('associate tags '):
-        associateTags(userInput[15:])
+    elif command == 'lookuplist':
+        valueList(getHits(['lookup'],'all'))
+    elif command == 'opentabs':
+        openTabs(args)
+    elif command == 'associate':
+        associateTags(args)
     else:
         print("I didn't recognize that command")
     
