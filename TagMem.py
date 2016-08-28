@@ -1,10 +1,9 @@
-#TagMem Version 6
+#TagMem Version 6.2.0
 from Memory import Memory
 from ENTRY import ENTRY
 import pickle, webbrowser
 
 memory = []
-associatedList = [('job', 'career'), ('career', 'job'), ('url', 'webpage'), ('raspberry','linda'),('pi','linda'),('linda','raspberry'),('linda','pi')]
 
 def createEntryDialogue():
     global memory
@@ -89,10 +88,21 @@ def associateTags(inputList):
     toAssociate = inputList
     if not (len(toAssociate) == 2):
         print("That was not formatted correctly")
-    memory.associateTags(toAssociate[0],toAssociate[1])
+
+    memory.getByID(440).addTag("{}:{}".format(toAssociate[0],toAssociate[1]))
+    print("Tags associated. Associations will update when the program closes")
 
 def updateAssociations():
-    for pair in associatedList:
+    #get associatedTags from entry 440
+    associatedList = memory.getByID(440).getTagList()[1:]
+    associatedList.remove('_hide_')
+
+    associatedPairs = []
+    #parse into two-element lists
+    for pairString in associatedList:
+        associatedPairs.append(pairString.split(':'))
+    
+    for pair in associatedPairs:
         memory.associateTags(pair[0],pair[1])
 
 def removeProtocol(inputList):
@@ -153,6 +163,9 @@ def updateEntry(inputList):
         print("Entry updated")
 
 def getHits(queryList, allorany):
+    if len(queryList) == 0:
+        print("Hey! There were no searchable tags!")
+        return []
     if allorany == 'all':
         hitList = memory.searchMatchAll(queryList)
     else:
@@ -179,17 +192,24 @@ def detailPrint(hitList):
 def searchDispatch(inputList):
     inclusionParam = 'all' #default
     argList = []
+    ignoreList = ['_hide_']#ignore hidden entries
     for token in inputList:
         if token.startswith('-'):
             argList.append(token)#add to argList
+        elif token.startswith('$'):
+            ignoreList.append(token[1:])#add to ignoreList
             
     #magic voodoo that returns queries sans-arguments
-    queries = [each for each in inputList if not each.startswith('-')]
+    queries = [each for each in inputList if not (each.startswith('-') or each.startswith('$')) ]
     
     if '-any' in argList:
         inclusionParam = 'any'
 
     hits = getHits(queries, inclusionParam)
+
+    #remove any hits with the ignore tag
+    for iTag in ignoreList:
+        hits = [hit for hit in hits if iTag not in hit.getTagList()]
 
     if '-value' in argList:
         valueList(hits)
@@ -208,7 +228,67 @@ def view(inputList):
     toView = inputList[0]
     if memory.isValidID(toView):
         memory.getByID(toView).printDetail()
+
+def hide(inputList):
+    #inputList should have only one entry and it should be an id.
+    if len(inputList)!=1:
+        print("That wasn't formatted correctly. Try again")
+        return
+    entryID = inputList[0]
+    if not (memory.isValidID(entryID)):
+        print("Not a valid ID")
+        return
+
+    toHide = memory.getByID(entryID)
+
+    #make sure user wants to hide this entry
+    print("Are you sure you want to hide this entry?")
+    toHide.printDetail()
+    doIt = input("(y/n)-->")
+
+    if doIt.lower().startswith('n'):
+        print("Aborting")
+        return
     
+    #now for the hiding
+    toHide.addTag('_hide_')
+    print("Entry {} hidden".format(entryID))
+
+def unhide(inputList):
+    #inputList should have only one entry and it should be an id.
+    if len(inputList)!=1:
+        print("That wasn't formatted correctly. Try again")
+        return
+    entryID = inputList[0]
+    if not (memory.isValidID(entryID)):
+        print("Not a valid ID")
+        return
+
+    toExpose = memory.getByID(entryID)
+    #entry should be hidden.
+    if '_hide_' not in toExpose.getTagList():
+        print("Entry {} is not hidden.".format(entryID))
+        return
+    #else
+    toExpose.removeTag('_hide_')
+    print('Entry {} unhidden'.format(entryID))
+
+def supersearch(inputList):
+    #unhide everything
+    for entry in memory.storage:
+        for tag in entry.getTagList():
+            if tag == '_hide_':
+                entry.removeTag('_hide_')
+                entry.addTag('xhide_')
+    #regular search with inputList
+    searchDispatch(inputList)
+    #rehide the hidden things
+    for entry in memory.storage:
+        for tag in entry.getTagList():
+            if tag == 'xhide_':
+                entry.removeTag('xhide_')
+                entry.addTag('_hide_')
+
 def dispatch(userInput):
     rawInput = userInput
     userInput = userInput.lower()
@@ -256,6 +336,12 @@ def dispatch(userInput):
         openTabs(args)
     elif command == 'associate':
         associateTags(args)
+    elif command == 'hide':
+        hide(args)
+    elif command == 'unhide':
+        unhide(args)
+    elif command == 'supersearch':
+        supersearch(args)
     else:
         print("I didn't recognize that command")
     

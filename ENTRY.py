@@ -24,10 +24,10 @@ class ENTRY:
     def getID(self):
         return self.idNum
 
-    def getname(self):
+    def getName(self):
         return self.name
 
-    def setname(self, newName):
+    def setName(self, newName):
         self.name = newName
 
     def __str__(self):
