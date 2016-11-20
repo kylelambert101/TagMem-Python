@@ -1,9 +1,25 @@
-#TagMem Version 6.2.0
+#TagMem Version 7.0.0
 from Memory import Memory
 from ENTRY import ENTRY
+from datetime import datetime
 import pickle, webbrowser
 
 memory = []
+
+changelog = []
+'''
+To be correctly parsed, changelog should be a List of tuples
+(changeItem string, datetime.now())
+The string changeItem should be formatted as:
+<command> <arguments>
+specific to the command.
+add <name> <value> <comma-separated tags>
+remove <ID> <checkValue>
+update <ID> <checkValue> <field> <new value>
+associate <tag1> <tag2>
+hide <ID> <checkValue>
+unhide <ID> <checkValue>
+'''
 
 def createEntryDialogue():
     global memory
@@ -13,10 +29,14 @@ def createEntryDialogue():
     tagList = tagString.lower().split(' ')
     freshID = memory.addNewEntry(name, value, tagList)
     print("New Entry added! (ID {})".format(freshID))
+    changeItem = 'add {} {} '.format(name,value)
+    tags = ','.join(tagList)
+    changeItem = changeItem + tags
+    changelog.append((changeItem,datetime.now()))
     saveMemory()
 
 def loadMemory():
-    global memory
+    global memory, changelog
     try:
         filename = "../Resources/myMemory.dat"
         file = open(filename, "rb")
@@ -26,9 +46,18 @@ def loadMemory():
     except:
         print("No Memory file exists.  A new one will be made.")
         memory = Memory()
+
+    try:
+        cFilename = "../Resources/changeLog.dat"
+        cFile = open(cFilename, "rb")
+        changelog = pickle.load(cFile)
+        print("Change Log successfully loaded.")
+        cFile.close()
+    except:
+        print("No Change Log exists. A new one will be made.")
         
 def saveMemory():
-    global memory
+    global memory,changelog
     filename = "../Resources/myMemory.dat"
     file = open(filename, "wb")
     if file == None:
@@ -38,24 +67,39 @@ def saveMemory():
     file.close()
     print("Saved Memory to",filename)
 
+    cFilename = "../Resources/changelog.dat"
+    cFile = open(cFilename, "wb")
+    if cFile == None:
+        print("There was an error creating the changelog file")
+        return
+    pickle.dump(changelog,cFile)
+    cFile.close()
+    print("Saved Change Log to ",cFilename)
+
 def printHelp():
     print()
     print("The following are the available commands for the TagMem program:")
-    print("add -- starts the add dialogue for adding a new entry to memory")
-    print("associatetags TAG1 TAG2 -- adds TAG2 to any entry with TAG1")
+    print("add -- opens add dialogue")
+    print("add STRING -- generates and adds new entry from STRING info")
+    print("associate TAG1 TAG2 -- associates TAG2 with TAG1 in the database")
     print("help -- prints this super helpful list")
-    print("lookup TASK -- creates a new lookup entry which can be found under todolist and lookuplist")
+    print("hide ID -- hides specified entry from future searches")
+    print("lookup TASK -- creates a new lookup entry")
     print("lookuplist -- lists all lookup entries")
-    print("opentabs ID -- opens all URLs from specified entry value in default web browser")
+    print("opentabs ID -- opens all URLs from specified entry in browser")
     print("print detail -- prints detail view of full memory")
     print("quickprint -- prints ID and name of all entries in memory")
     print("remove ENTRYID -- removes the entry with the given ID")
     print("save -- saves the current memory to myMemory.dat")
-    print("search QUERY -- searches memory for given query (not case sensitive) and displays detail print of results")
+    print("search QUERY -ARGS $IGTAG -- performs search on all QUERY TERMS")
+    print("\t-any/-all - specifies whether to match all or any queries")
+    print("\t-r/-name/-value/-detail - specifies what information to print")
+    print("\t*entries that contain IGTAG will be skipped in search")
+    print("supersearch -- replaces search, includes hidden entries")
     print("todo TASK -- creates a new todo entry with the value TASK")
+    print("unhide ID -- exposes specified entry to future searches")
     print("update ID -- opens edit dialogue for the specified entry")
-    print("url ID -- opens the URL value of the specified entry in default web browser")
-    print("valuelist QUERY -- prints only values of search results for given query")
+    print("url ID -- opens specified entry's URL in default web browser")
     print("view ID -- displays detail print of entry with given ID")
 
 #updated to use inputList----------------------------------------------
@@ -88,8 +132,11 @@ def associateTags(inputList):
     toAssociate = inputList
     if not (len(toAssociate) == 2):
         print("That was not formatted correctly")
-
-    memory.getByID(440).addTag("{}:{}".format(toAssociate[0],toAssociate[1]))
+    tag1 = toAssociate[0]
+    tag2 = toAssociate[1]
+    changeItem = 'associate {} {}'.format(tag1,tag2)
+    changelog.append((changeItem,datetime.now()))
+    memory.getByID(440).addTag("{}:{}".format(tag1,tag2))
     print("Tags associated. Associations will update when the program closes")
 
 def updateAssociations():
@@ -117,6 +164,8 @@ def removeProtocol(inputList):
     entry.printDetail()
     sure = input("-->")
     if (sure.lower().startswith('y')):
+        changeItem = 'remove {} {}'.format(entryID,entry.getName())
+        changelog.append((changeItem,datetime.now()))
         memory.remove(entry)
         print("Entry removed")
         saveMemory()
@@ -126,10 +175,20 @@ def removeProtocol(inputList):
 def expressAdd(toAdd, prefix='', extraTags=''):
     name = prefix+toAdd
     value = toAdd
-    tagString = toAdd+' '+extraTags
+    #below needed to prevent extra blank tag in
+    #cases where extraTags is empty
+    if (len(extraTags) >0):
+        spacer = ' '
+    else:
+        spacer = ''
+    tagString = toAdd+spacer+extraTags
     tagList = tagString.lower().split(' ')
     freshID = memory.addNewEntry(name, value, tagList)
     print("New Entry Added (ID {})".format(freshID))
+    changeItem = 'add {} {} '.format(name,value)
+    tags = ','.join(tagList)
+    changeItem = changeItem + tags
+    changelog.append((changeItem,datetime.now()))
     saveMemory()
 
 def updateEntry(inputList):
@@ -146,19 +205,29 @@ def updateEntry(inputList):
         toUpdate = memory.getByID(entryID)
         toUpdate.printDetail()
         editChoice = input('\n-->')
+        editField = ''
         if editChoice.lower().startswith('new name '):
-            toUpdate.setName(editChoice[9:])
+            newName = editChoice[9:]
+            changeItem = 'update {} {} name {}'.format(toUpdate.getID(),toUpdate.getName(),newName)
+            toUpdate.setName(newName)
         elif editChoice.lower().startswith('new value '):
-            toUpdate.setValue(editChoice[10:])
+            newValue = editChoice[10:]
+            changeItem = 'update {} {} value {}'.format(toUpdate.getID(),toUpdate.getName(),newValue)
+            toUpdate.setValue(newValue)
         elif editChoice.lower().startswith('add tag '):
-            toUpdate.addTag(editChoice[8:])
+            newTag = editChoice[8:]
+            changeItem = 'update {} {} addTag {}'.format(toUpdate.getID(),toUpdate.getName(),newTag)
+            toUpdate.addTag(newTag)
         elif editChoice.lower().startswith('remove tag '):
-            toUpdate.removeTag(editChoice[11:])
+            rTag = editChoice[11:]
+            changeItem = 'update {} {} remTag {}'.format(toUpdate.getID(),toUpdate.getName(),rTag)
+            toUpdate.removeTag(rTag)
         elif editChoice.lower() == 'done':
             print("Returning to main menu")
             return
         else:
             print("That didn't make sense to me.")
+        changelog.append((changeItem,datetime.now()))
         saveMemory()
         print("Entry updated")
 
@@ -251,6 +320,8 @@ def hide(inputList):
         return
     
     #now for the hiding
+    changeItem = 'hide {} {}'.format(toHide.getID(),toHide.getName())
+    changelog.append((changeItem,datetime.now()))
     toHide.addTag('_hide_')
     print("Entry {} hidden".format(entryID))
 
@@ -270,6 +341,8 @@ def unhide(inputList):
         print("Entry {} is not hidden.".format(entryID))
         return
     #else
+    changeItem = 'unhide {} {}'.format(toExpose.getID(),toExpose.getName())
+    changelog.append((changeItem,datetime.now()))
     toExpose.removeTag('_hide_')
     print('Entry {} unhidden'.format(entryID))
 
@@ -319,7 +392,7 @@ def dispatch(userInput):
     elif command == 'remove':
         removeProtocol(args)
     elif command == 'todo' and len(args)>0:#make sure there's more after todo
-        expressAdd(rawInput[5:], "","todo to do")
+        expressAdd(rawInput[5:], "","todo")
     elif command == 'todolist':
         nameList(getHits(['todo'],'all'))
     elif command == 'wish' and len(args)>0:
@@ -329,7 +402,7 @@ def dispatch(userInput):
     elif command == "url":
         openURL(args)
     elif command == 'lookup' and len(args)>0:
-        expressAdd(rawInput[7:],'Lookup: ','lookup look up todo to do')
+        expressAdd(rawInput[7:],'Lookup: ','lookup look up todo')
     elif command == 'lookuplist':
         valueList(getHits(['lookup'],'all'))
     elif command == 'opentabs':
