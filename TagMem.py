@@ -1,24 +1,25 @@
-#TagMem Version 7.0.0
+#TagMem Version 7.2.0
 from Memory import Memory
 from ENTRY import ENTRY
 from datetime import datetime
 import pickle, webbrowser
 
 memory = []
-
+dropboxMemoryFilePath = 'pathToMemory'
+localMemoryFilePath = '../Resources/myMemory.dat'
 changelog = []
 '''
 To be correctly parsed, changelog should be a List of tuples
 (changeItem string, datetime.now())
 The string changeItem should be formatted as:
-<command> <arguments>
+<command>$---$<arguments>
 specific to the command.
-add <name> <value> <comma-separated tags>
-remove <ID> <checkValue>
-update <ID> <checkValue> <field> <new value>
-associate <tag1> <tag2>
-hide <ID> <checkValue>
-unhide <ID> <checkValue>
+add$---$<name>$---$<value>$---$<comma-separated tags>
+remove$---$<ID>$---$<checkValue>
+update$---$<ID>$---$<checkValue>$---$<field>$---$<new value>
+associate$---$<tag1>$---$<tag2>
+hide$---$<ID>$---$<checkValue>
+unhide$---$<ID>$---$<checkValue>
 '''
 
 def createEntryDialogue():
@@ -29,20 +30,21 @@ def createEntryDialogue():
     tagList = tagString.lower().split(' ')
     freshID = memory.addNewEntry(name, value, tagList)
     print("New Entry added! (ID {})".format(freshID))
-    changeItem = 'add {} {} '.format(name,value)
+    changeItem = 'add$---${}$---${}$---$'.format(name,value)
     tags = ','.join(tagList)
     changeItem = changeItem + tags
     changelog.append((changeItem,datetime.now()))
     saveMemory()
 
-def loadMemory():
+def loadMemory(start=False):
     global memory, changelog
+    
     try:
-        filename = "../Resources/myMemory.dat"
-        file = open(filename, "rb")
-        memory = pickle.load(file)
-        print("Memory file successfully loaded.")
-        file.close()
+        memFile = open(dropboxMemoryFilePath, "rb")
+        memory = pickle.load(memFile)
+        if start:
+            print("Memory file successfully loaded.")
+        memFile.close()
     except:
         print("No Memory file exists.  A new one will be made.")
         memory = Memory()
@@ -51,14 +53,15 @@ def loadMemory():
         cFilename = "../Resources/changeLog.dat"
         cFile = open(cFilename, "rb")
         changelog = pickle.load(cFile)
-        print("Change Log successfully loaded.")
+        if start:
+            print("Change Log successfully loaded.")
         cFile.close()
     except:
         print("No Change Log exists. A new one will be made.")
         
 def saveMemory():
     global memory,changelog
-    filename = "../Resources/myMemory.dat"
+    filename = dropboxMemoryFilePath
     file = open(filename, "wb")
     if file == None:
         print("There was an error creating the file")
@@ -134,10 +137,11 @@ def associateTags(inputList):
         print("That was not formatted correctly")
     tag1 = toAssociate[0]
     tag2 = toAssociate[1]
-    changeItem = 'associate {} {}'.format(tag1,tag2)
+    changeItem = 'associate$---${}$---${}'.format(tag1,tag2)
     changelog.append((changeItem,datetime.now()))
     memory.getByID(440).addTag("{}:{}".format(tag1,tag2))
     print("Tags associated. Associations will update when the program closes")
+    saveMemory()
 
 def updateAssociations():
     #get associatedTags from entry 440
@@ -152,6 +156,8 @@ def updateAssociations():
     for pair in associatedPairs:
         memory.associateTags(pair[0],pair[1])
 
+    saveMemory()
+
 def removeProtocol(inputList):
     if len(inputList)!=1:
         print("That wasn't formatted correctly. Try again")
@@ -164,7 +170,7 @@ def removeProtocol(inputList):
     entry.printDetail()
     sure = input("-->")
     if (sure.lower().startswith('y')):
-        changeItem = 'remove {} {}'.format(entryID,entry.getName())
+        changeItem = 'remove$---${}$---${}'.format(entryID,entry.getName())
         changelog.append((changeItem,datetime.now()))
         memory.remove(entry)
         print("Entry removed")
@@ -185,7 +191,7 @@ def expressAdd(toAdd, prefix='', extraTags=''):
     tagList = tagString.lower().split(' ')
     freshID = memory.addNewEntry(name, value, tagList)
     print("New Entry Added (ID {})".format(freshID))
-    changeItem = 'add {} {} '.format(name,value)
+    changeItem = 'add$---${}$---${}$---$'.format(name,value)
     tags = ','.join(tagList)
     changeItem = changeItem + tags
     changelog.append((changeItem,datetime.now()))
@@ -206,30 +212,33 @@ def updateEntry(inputList):
         toUpdate.printDetail()
         editChoice = input('\n-->')
         editField = ''
+        edited = True
         if editChoice.lower().startswith('new name '):
             newName = editChoice[9:]
-            changeItem = 'update {} {} name {}'.format(toUpdate.getID(),toUpdate.getName(),newName)
+            changeItem = 'update$---${}$---${}$---$name$---${}'.format(toUpdate.getID(),toUpdate.getName(),newName)
             toUpdate.setName(newName)
         elif editChoice.lower().startswith('new value '):
             newValue = editChoice[10:]
-            changeItem = 'update {} {} value {}'.format(toUpdate.getID(),toUpdate.getName(),newValue)
+            changeItem = 'update$---${}$---${}$---$value$---${}'.format(toUpdate.getID(),toUpdate.getName(),newValue)
             toUpdate.setValue(newValue)
         elif editChoice.lower().startswith('add tag '):
             newTag = editChoice[8:]
-            changeItem = 'update {} {} addTag {}'.format(toUpdate.getID(),toUpdate.getName(),newTag)
+            changeItem = 'update$---${}$---${}$---$addTag$---${}'.format(toUpdate.getID(),toUpdate.getName(),newTag)
             toUpdate.addTag(newTag)
         elif editChoice.lower().startswith('remove tag '):
             rTag = editChoice[11:]
-            changeItem = 'update {} {} remTag {}'.format(toUpdate.getID(),toUpdate.getName(),rTag)
+            changeItem = 'update$---${}$---${}$---$remTag$---${}'.format(toUpdate.getID(),toUpdate.getName(),rTag)
             toUpdate.removeTag(rTag)
         elif editChoice.lower() == 'done':
             print("Returning to main menu")
             return
         else:
             print("That didn't make sense to me.")
-        changelog.append((changeItem,datetime.now()))
-        saveMemory()
-        print("Entry updated")
+            edited = False
+        if edited:
+            changelog.append((changeItem,datetime.now()))
+            saveMemory()
+            print("Entry updated")
 
 def getHits(queryList, allorany):
     if len(queryList) == 0:
@@ -320,10 +329,11 @@ def hide(inputList):
         return
     
     #now for the hiding
-    changeItem = 'hide {} {}'.format(toHide.getID(),toHide.getName())
+    changeItem = 'hide$---${}$---${}'.format(toHide.getID(),toHide.getName())
     changelog.append((changeItem,datetime.now()))
     toHide.addTag('_hide_')
     print("Entry {} hidden".format(entryID))
+    saveMemory()
 
 def unhide(inputList):
     #inputList should have only one entry and it should be an id.
@@ -341,10 +351,11 @@ def unhide(inputList):
         print("Entry {} is not hidden.".format(entryID))
         return
     #else
-    changeItem = 'unhide {} {}'.format(toExpose.getID(),toExpose.getName())
+    changeItem = 'unhide$---${}$---${}'.format(toExpose.getID(),toExpose.getName())
     changelog.append((changeItem,datetime.now()))
     toExpose.removeTag('_hide_')
     print('Entry {} unhidden'.format(entryID))
+    saveMemory()
 
 def supersearch(inputList):
     #unhide everything
@@ -363,6 +374,7 @@ def supersearch(inputList):
                 entry.addTag('_hide_')
 
 def dispatch(userInput):
+    loadMemory()
     rawInput = userInput
     userInput = userInput.lower()
     inputList = userInput.split(' ')
@@ -420,9 +432,11 @@ def dispatch(userInput):
     
 def main():
     global memory
-    loadMemory()
     print("Welcome to your memory!")
+    start = True
     while True:
+        loadMemory(start)
+        start = False
         print("---------------------------------------------")
         print("What would you like to do?")
         userChoice = input("-->")
@@ -433,7 +447,6 @@ def main():
                 saveMemory()
             else:
                 print("Alright, whatevs.")
-                updateAssociations()
             print("TTYL!")
             return
         dispatch(userChoice)
